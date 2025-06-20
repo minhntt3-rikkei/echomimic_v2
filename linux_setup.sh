@@ -115,6 +115,9 @@ else
 fi
 cd ../..
 
+# Set up CUDA environment to use python cudnn if not globally installed
+export LD_LIBRARY_PATH=$PWD/.venv/lib/python3.11/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH
+
 # Install FFmpeg Enviroment
 if ! dpkg -l | grep -q ffmpeg; then
     echo "Installing FFmpeg enviroment..."
