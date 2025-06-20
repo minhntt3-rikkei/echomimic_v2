@@ -3,6 +3,7 @@ import os
 import numpy as np
 import torch
 
+from settings import settings
 from .wholebody import Wholebody
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -13,9 +14,9 @@ class DWposeDetector:
     A pose detect method for image-like data.
 
     Parameters:
-        model_det: (str) serialized ONNX format model path, 
+        model_det: (str) serialized ONNX format model path,
                     such as https://huggingface.co/yzd-v/DWPose/blob/main/yolox_l.onnx
-        model_pose: (str) serialized ONNX format model path, 
+        model_pose: (str) serialized ONNX format model path,
                     such as https://huggingface.co/yzd-v/DWPose/blob/main/dw-ll_ucoco_384.onnx
         device: (str) 'cpu' or 'cuda:{device_id}'
     """
@@ -62,7 +63,7 @@ class DWposeDetector:
             return pose
 
 dwpose_detector = DWposeDetector(
-    model_det="your_path_to_yolox_l.onnx",
-    model_pose="your_path_to_dw-ll_ucoco_384.onnx",
+    model_det=os.path.join(settings.model_path, settings.model_det_name),
+    model_pose=os.path.join(settings.model_path, settings.model_pose_name),
     device=device)
 print('dwpose_detector init ok', device)

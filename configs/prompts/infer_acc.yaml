@@ -1,4 +1,5 @@
 pretrained_base_model_path: "./pretrained_weights/sd-image-variations-diffusers"
+pretrained_unet_path: "./pretrained_weights/sd-image-variations-diffusers/unet"
 pretrained_vae_path: "./pretrained_weights/sd-vae-ft-mse"
 
 

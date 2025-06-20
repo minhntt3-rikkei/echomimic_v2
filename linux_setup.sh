@@ -1,7 +1,13 @@
 #!/bin/bash
 
-#install requirements
-pip install -r requirements.txt
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+
+# Create virtual environment
+uv venv -p 3.11
+source .venv/bin/activate
+
 # Function to check file existence
 verify_file() {
     if [ ! -f "$1" ]; then
@@ -19,18 +25,15 @@ verify_dir() {
     fi
 }
 
-# Upgrade pip and install dependencies
-echo "Upgrading pip..."
-pip install pip -U
+# Install dependencies
 echo "Installing dependencies..."
-pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 xformers==0.0.28.post3 --index-url https://download.pytorch.org/whl/cu124
-pip install torchao --index-url https://download.pytorch.org/whl/nightly/cu124
-if [ -f "requirements.txt" ]; then
-    pip install -r requirements.txt
+uv pip install torch torchvision torchaudio xformers --index-url https://download.pytorch.org/whl/cu128
+uv pip install torchao
+if [ -f "requirements.in" ]; then
+    uv pip install -r requirements.in
 else
-    echo "requirements.txt not found. Skipping requirements installation."
+    echo "requirements.in not found. Skipping requirements installation."
 fi
-pip install --no-deps facenet_pytorch==2.6.0
 
 # Install FFmpeg
 if [ ! -d "ffmpeg-4.4-amd64-static" ]; then
@@ -91,7 +94,26 @@ if [ ! -f "tiny.pt" ]; then
 else
     echo "tiny.pt model already exists. Skipping download."
 fi
-cd ../../..
+cd ../..
+
+# Install yolox_l.onnx and dw-ll_ucoco_384.onnx
+MODEL_DIR="./models"
+verify_dir "$MODEL_DIR"
+cd "$MODEL_DIR" || exit
+
+if [ ! -f "yolox_l.onnx" ]; then
+    echo "Downloading yolox_l.onnx model..."
+    wget https://huggingface.co/yzd-v/DWPose/resolve/main/yolox_l.onnx
+else
+    echo "yolox_l.onnx model already exists. Skipping download."
+fi
+if [ ! -f "dw-ll_ucoco_384.onnx" ]; then
+    echo "Downloading dw-ll_ucoco_384.onnx model..."
+    wget https://huggingface.co/yzd-v/DWPose/resolve/main/dw-ll_ucoco_384.onnx
+else
+    echo "dw-ll_ucoco_384.onnx model already exists. Skipping download."
+fi
+cd ../..
 
 # Install FFmpeg Enviroment
 if ! dpkg -l | grep -q ffmpeg; then

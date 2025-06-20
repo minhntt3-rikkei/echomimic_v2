@@ -20,14 +20,14 @@ from torchao.quantization import quantize_, int8_weight_only
 import gc
 
 total_vram_in_gb = torch.cuda.get_device_properties(0).total_memory / 1073741824
-print(f'\033[32mCUDA版本：{torch.version.cuda}\033[0m')
-print(f'\033[32mPytorch版本：{torch.__version__}\033[0m')
-print(f'\033[32m显卡型号：{torch.cuda.get_device_name()}\033[0m')
-print(f'\033[32m显存大小：{total_vram_in_gb:.2f}GB\033[0m')
-print(f'\033[32m精度：float16\033[0m')
+print(f'\033[32mCUDA version: {torch.version.cuda}\033[0m')
+print(f'\033[32mPytorch version: {torch.__version__}\033[0m')
+print(f'\033[32mGPU: {torch.cuda.get_device_name()}\033[0m')
+print(f'\033[32mVRAM: {total_vram_in_gb:.2f}GB\033[0m')
+print(f'\033[32mPrecision: float16\033[0m')
 dtype = torch.float16
 if torch.cuda.is_available():
-        device = "cuda"
+    device = "cuda"
 else:
     print("cuda not available, using cpu")
     device = "cpu"
@@ -107,7 +107,7 @@ def generate(image_input, audio_input, pose_input, width, height, length, steps,
 
     ### load audio processor params
     audio_processor = load_audio_model(model_path="./pretrained_weights/audio_processor/tiny.pt", device=device)
-   
+
     ############# model_init finished #############
     sched_kwargs = {
         "beta_start": 0.00085,
@@ -149,10 +149,10 @@ def generate(image_input, audio_input, pose_input, width, height, length, steps,
     print('Audio:', inputs_dict['audio'])
 
     save_name = f"{save_dir}/{timestamp}"
-    
+
     ref_image_pil = Image.open(inputs_dict['refimg']).resize((width, height))
     audio_clip = AudioFileClip(inputs_dict['audio'])
-    
+
     length = min(length, int(audio_clip.duration * fps), len(os.listdir(inputs_dict['pose'])))
 
     start_idx = 0
@@ -169,10 +169,10 @@ def generate(image_input, audio_input, pose_input, width, height, length, steps,
 
         tgt_musk_pil = Image.fromarray(np.array(tgt_musk)).convert('RGB')
         pose_list.append(torch.Tensor(np.array(tgt_musk_pil)).to(dtype=dtype, device=device).permute(2,0,1) / 255.0)
-    
+
     poses_tensor = torch.stack(pose_list, dim=1).unsqueeze(0)
     audio_clip = AudioFileClip(inputs_dict['audio'])
-    
+
     audio_clip = audio_clip.set_duration(length / fps)
     video = pipe(
         ref_image_pil,
@@ -189,11 +189,11 @@ def generate(image_input, audio_input, pose_input, width, height, length, steps,
         fps=fps,
         context_overlap=context_overlap,
         start_idx=start_idx,
-    ).videos 
-    
+    ).videos
+
     final_length = min(video.shape[2], poses_tensor.shape[2], length)
     video_sig = video[:, :, :final_length, :, :]
-    
+
     save_videos_grid(
         video_sig,
         save_name + "_woa_sig.mp4",
@@ -221,7 +221,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             <div style="text-align: center; font-weight: bold; color: red;">
                 ⚠️ 该演示仅供学术研究和体验使用。
             </div>
-            
+
             """)
     with gr.Column():
         with gr.Row():
@@ -260,10 +260,10 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                 ["EMTD_dataset/ref_imgs_by_FLUX/man/0001.png", "assets/halfbody_demo/audio/chinese/echomimicv2_man.wav"],
                 ["EMTD_dataset/ref_imgs_by_FLUX/woman/0077.png", "assets/halfbody_demo/audio/chinese/echomimicv2_woman.wav"],
             ],
-            inputs=[image_input, audio_input],  
+            inputs=[image_input, audio_input],
             label="预设人物及音频",
         )
-    
+
     generate_button.click(
         generate,
         inputs=[image_input, audio_input, pose_input, width, height, length, steps, sample_rate, cfg, fps, context_frames, context_overlap, quantization_input, seed],
